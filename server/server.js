@@ -13,7 +13,7 @@ import paymentRoutes from "./src/routes/paymentRoutes.js";
 import uploadRoutes from "./src/routes/uploadRoutes.js";
 import reportRoutes from "./src/routes/reportRoutes.js";
 import errorHandler from "./src/middleware/errorHandler.js";
-
+import settingsRoutes from "./src/routes/settingsRoutes.js";
 // Connect to MongoDB
 connectDB();
 
@@ -35,6 +35,7 @@ app.use("/api/units", unitRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // Global error handler (should be last)
 app.use(errorHandler);
