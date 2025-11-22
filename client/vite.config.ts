@@ -15,4 +15,18 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Increase chunk size warning limit to 2 MB (2000 KB)
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        // Optional: split vendor code into separate chunk
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            return "vendor";
+          }
+        },
+      },
+    },
+  },
 }));
