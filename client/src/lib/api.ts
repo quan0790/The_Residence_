@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 // Backend base URL
 export const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://the-residence-4.onrender.com/api",
 });
 
 // Inject JWT token into all requests

@@ -23,7 +23,7 @@ interface Report {
 }
 
 function Reports() {
-  const BASE_URL = "http://localhost:5000"; // backend
+  const BASE_URL = "https://the-residence-4.onrender.com"; // backend
   const token = localStorage.getItem("token");
 
   const [reports, setReports] = useState<Report[]>([]);

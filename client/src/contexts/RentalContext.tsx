@@ -26,7 +26,7 @@ export const RentalProvider = ({ children }: { children: ReactNode }) => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [payments, setPayments] = useState<RentPayment[]>([]);
 
-  const API_URL = "http://localhost:5000/api";
+  const API_URL = "https://the-residence-4.onrender.com/api";
   const API = import.meta.env.VITE_API_URL || API_URL;
 
   const fetchWithAuth = async (url: string, options: RequestInit = {}) => {

@@ -1,4 +1,4 @@
-const API = "http://localhost:5000/api";
+const API = "https://the-residence-4.onrender.com/api";
 
 // Fetch all saved reports
 export const fetchReports = async () => {
