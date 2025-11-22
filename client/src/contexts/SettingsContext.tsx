@@ -1,12 +1,6 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { toast } from "sonner";
+import { API } from "@/lib/api"; // Use the fixed API instance
 
 export type SettingsForm = {
   fullName: string;
@@ -59,13 +53,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<SettingsForm>(EMPTY_SETTINGS);
   const [loading, setLoading] = useState(true);
 
-  // Load from backend, not localStorage
+  // Load from backend using API instance
   useEffect(() => {
     async function load() {
       try {
-        const res = await axios.get("/api/settings", {
-          withCredentials: true,
-        });
+        const res = await API.get("/Settings");
         setSettings(res.data);
       } catch (err) {
         toast.error("Failed to load settings");
@@ -75,13 +67,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     load();
   }, []);
 
-  // Update settings on BACKEND
+  // Update settings on backend
   const updateSettings = async (newSettings: Partial<SettingsForm>) => {
     try {
       const payload = { ...settings, ...newSettings };
-      const res = await axios.put("/api/settings", payload, {
-        withCredentials: true,
-      });
+      const res = await API.put("/Settings", payload);
       setSettings(res.data);
       toast.success("Settings updated");
     } catch (err) {
@@ -92,11 +82,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   // Reset user settings on backend
   const resetSettings = async () => {
     try {
-      const res = await axios.put(
-        "/api/settings",
-        EMPTY_SETTINGS,
-        { withCredentials: true }
-      );
+      const res = await API.put("/settings", EMPTY_SETTINGS);
       setSettings(res.data);
       toast.success("Settings reset");
     } catch (err) {
@@ -105,9 +91,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <SettingsContext.Provider
-      value={{ settings, updateSettings, resetSettings, loading }}
-    >
+    <SettingsContext.Provider value={{ settings, updateSettings, resetSettings, loading }}>
       {children}
     </SettingsContext.Provider>
   );
