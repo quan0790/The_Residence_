@@ -44,7 +44,7 @@ type TenantForm = {
 };
 
 const Tenants: React.FC = () => {
-  const { units, tenants, addTenant, updateTenant, deleteTenant, markRentPaid, updateUnit } =
+  const { units, tenants, addTenant, updateTenant, deleteTenant, markRentPaid, loadTenants, updateUnit } =
     useRental();
 
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -115,7 +115,6 @@ const Tenants: React.FC = () => {
           unitId: newUnitId === undefined ? null : newUnitId,
         } as any);
 
-        // Reassign units safely
         if (oldUnitId !== newUnitId) {
           if (oldUnitId) await updateUnit(oldUnitId, { tenantId: null, status: "vacant" });
           if (newUnitId) await updateUnit(newUnitId, { tenantId: editingTenant.id, status: "occupied" });
@@ -178,11 +177,13 @@ const Tenants: React.FC = () => {
     }
   };
 
+  // FIXED: reload tenants after marking rent paid
   const handleMarkPaid = async (tenant: TenantType) => {
     try {
       const unit = units.find((u) => u.id === tenant.unitId);
       if (!unit) return toast.error("Unit not found");
       await markRentPaid(tenant.id, unit.rentAmount);
+      await loadTenants(); // reload tenants to update UI
       toast.success("Rent marked as paid");
     } catch (err) {
       console.error("handleMarkPaid error", err);
@@ -229,7 +230,6 @@ const Tenants: React.FC = () => {
                   {editingTenant ? "Edit Tenant" : "Add Tenant"}
                 </Button>
               </DialogTrigger>
-
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{editingTenant ? "Edit Tenant" : "Add Tenant"}</DialogTitle>
@@ -239,19 +239,15 @@ const Tenants: React.FC = () => {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Name, Email, Phone */}
                   <div><Label>Name</Label><Input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
                   <div><Label>Email</Label><Input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
                   <div><Label>Phone</Label><Input type="tel" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} /></div>
 
-                  {/* Assign Unit */}
                   <div>
                     <Label>Assign Unit</Label>
                     <Select
                       value={formData.unitId || "unassigned"}
-                      onValueChange={(v) =>
-                        setFormData({ ...formData, unitId: v === "unassigned" ? "" : String(v) })
-                      }
+                      onValueChange={(v) => setFormData({ ...formData, unitId: v === "unassigned" ? "" : String(v) })}
                     >
                       <SelectTrigger><SelectValue placeholder="Select a unit" /></SelectTrigger>
                       <SelectContent>
@@ -260,11 +256,7 @@ const Tenants: React.FC = () => {
                           const isOccupied = u.status === "occupied";
                           const isCurrentTenantUnit = u.id === formData.unitId;
                           return (
-                            <SelectItem
-                              key={u.id}
-                              value={String(u.id)}
-                              disabled={isOccupied && !isCurrentTenantUnit}
-                            >
+                            <SelectItem key={u.id} value={String(u.id)} disabled={isOccupied && !isCurrentTenantUnit}>
                               Unit {u.unitNumber} — {u.type} {isOccupied && !isCurrentTenantUnit ? "(occupied)" : "(vacant)"}
                             </SelectItem>
                           );
@@ -273,7 +265,6 @@ const Tenants: React.FC = () => {
                     </Select>
                   </div>
 
-                  {/* Rent Due Day */}
                   <div>
                     <Label>Rent Due Day</Label>
                     <Select value={formData.rentDueDate} onValueChange={(v) => setFormData({ ...formData, rentDueDate: v })}>
@@ -284,7 +275,6 @@ const Tenants: React.FC = () => {
                     </Select>
                   </div>
 
-                  {/* Deposit & Notes */}
                   <div><Label>Deposit Paid ($)</Label><Input type="number" value={formData.depositPaid} onChange={(e) => setFormData({ ...formData, depositPaid: e.target.value })} /></div>
                   <div><Label>Notes</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} /></div>
 
@@ -306,12 +296,7 @@ const Tenants: React.FC = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search name, email, phone..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <Input placeholder="Search name, email, phone..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
 
           <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as "all" | "paid" | "unpaid")}>

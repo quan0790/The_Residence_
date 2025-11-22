@@ -34,7 +34,6 @@ function Payments() {
   const { payments, tenants, units, markRentPaid, loadPayments } = useRental();
   const { settings } = useSettings();
 
-  // use backend/user settings instead of localStorage
   const [currency, setCurrency] = useState<string>(settings.currency ?? "KES");
   const [timezone, setTimezone] = useState<string>(settings.timezone ?? "Africa/Nairobi");
 
@@ -46,7 +45,6 @@ function Payments() {
 
   const ITEMS_PER_PAGE = 6;
 
-  // sync with backend settings whenever they load
   useEffect(() => {
     setCurrency(settings.currency);
     setTimezone(settings.timezone);
@@ -86,7 +84,7 @@ function Payments() {
         tenantName: tenant.name ?? "Unknown",
         unitNumber: unit.unitNumber ?? "N/A",
         monthName,
-        paid: p.paid ?? true,
+        paid: p.paid ?? false, // default unpaid
       };
     });
   }, [payments, tenants, units]);
@@ -190,7 +188,6 @@ function Payments() {
 
         {/* Filter Bar */}
         <div className="flex flex-wrap items-center gap-3 mb-6 bg-[#10233F] p-4 rounded-xl shadow border border-white/10 text-white">
-
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-300" />
             <input
@@ -230,7 +227,6 @@ function Payments() {
           <Button className="rounded-lg bg-blue-600 hover:bg-blue-700" onClick={() => setModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" /> New Payment
           </Button>
-
         </div>
 
         {/* Payments */}
@@ -262,10 +258,25 @@ function Payments() {
                       {formatMoney(p.amount ?? 0)}
                     </span>
 
-                    {p.paid && (
+                    {p.paid ? (
                       <span className="text-xs bg-green-600 px-2 py-1 rounded-full text-white">
                         Paid
                       </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          try {
+                            await markRentPaid(p.tenantId, p.amount ?? 0, "Marked paid manually");
+                            await loadPayments();
+                          } catch (err: any) {
+                            alert(err?.message ?? "Failed to mark payment as paid");
+                          }
+                        }}
+                      >
+                        Mark as Paid
+                      </Button>
                     )}
 
                     <Button size="sm" variant="outline">
@@ -321,7 +332,6 @@ function Payments() {
               </div>
 
               <form onSubmit={handleAddPayment} className="space-y-4">
-
                 <select
                   name="tenantId"
                   required
@@ -356,12 +366,10 @@ function Payments() {
                 >
                   Add Payment
                 </Button>
-
               </form>
             </motion.div>
           </div>
         )}
-
       </>
     </Layout>
   );
